@@ -1,7 +1,9 @@
 import { FC } from "react"
 import { useSelector, useDispatch } from "react-redux"
 
+import { Launch } from "@mui/icons-material"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
+import { Tooltip } from "@mui/material"
 import Box from "@mui/material/Box"
 import Divider from "@mui/material/Divider"
 import Drawer, { drawerClasses } from "@mui/material/Drawer"
@@ -41,6 +43,23 @@ const RightDrawer: FC = () => {
         return "none"
     }
   })
+  const readTheDocsUrl = "https://optinist.readthedocs.io/en/latest"
+  const useRightDrawerSettings = () => {
+    const mode = useSelector((state: RootState) => selectRightDrawerMode(state))
+
+    const titleLink =
+      mode === RIGHT_DRAWER_MODE.NWB
+        ? `${readTheDocsUrl}/gui/workflow.html#nwb-setting`
+        : mode === RIGHT_DRAWER_MODE.SNAKEMAKE
+          ? `${readTheDocsUrl}/gui/workflow.html#snakemane-settings`
+          : ""
+
+    const showLaunch =
+      mode === RIGHT_DRAWER_MODE.NWB || mode === RIGHT_DRAWER_MODE.SNAKEMAKE
+
+    return { titleLink, showLaunch }
+  }
+  const { titleLink, showLaunch } = useRightDrawerSettings()
   return (
     <StyledDrawer open={open} anchor="right" variant="persistent">
       <Toolbar />
@@ -49,6 +68,21 @@ const RightDrawer: FC = () => {
           <ChevronRightIcon />
         </IconButton>
         <Typography variant="h6">{title}</Typography>
+        {showLaunch && (
+          <a
+            href={titleLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              marginLeft: "5px",
+              marginRight: "10px",
+            }}
+          >
+            <Tooltip title="Check Documentation">
+              <Launch style={{ fontSize: "16px" }} />
+            </Tooltip>
+          </a>
+        )}
       </Box>
       <Divider />
       <MainContents>
