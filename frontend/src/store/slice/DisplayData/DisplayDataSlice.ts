@@ -1,4 +1,4 @@
-import { createSlice, isAnyOf } from "@reduxjs/toolkit"
+import { createSlice, isAnyOf, PayloadAction } from "@reduxjs/toolkit"
 
 import {
   getCsvData,
@@ -20,6 +20,7 @@ import {
   addRoi,
   deleteRoi,
   commitRoi,
+  clickRoi,
   getStatus,
 } from "store/slice/DisplayData/DisplayDataActions"
 import {
@@ -49,7 +50,12 @@ const initialState: DisplayData = {
   polar: {},
   loading: false,
   loadingStack: [],
-  statusRoi: { temp_add_roi: [], temp_delete_roi: [], temp_merge_roi: [] },
+  statusRoi: {
+    temp_add_roi: [],
+    temp_delete_roi: [],
+    temp_merge_roi: [],
+    temp_selected_roi: [],
+  },
   isEditRoiCommitting: false,
 }
 
@@ -601,6 +607,7 @@ export const displayDataSlice = createSlice({
           temp_add_roi: [],
           temp_delete_roi: [],
           temp_merge_roi: [],
+          temp_selected_roi: [],
         }
 
         state.loadingStack.pop()
@@ -611,6 +618,35 @@ export const displayDataSlice = createSlice({
 
         state.loadingStack.push((state.loading = true))
       })
+      .addCase(
+        clickRoi,
+        (state, action: PayloadAction<{ roiIndex: number }>) => {
+          const { roiIndex } = action.payload
+          if (!state.statusRoi) {
+            state.statusRoi = {
+              temp_add_roi: [],
+              temp_delete_roi: [],
+              temp_merge_roi: [],
+              temp_selected_roi: [],
+            }
+          }
+          state.statusRoi.temp_add_roi = state.statusRoi.temp_add_roi || []
+          state.statusRoi.temp_delete_roi =
+            state.statusRoi.temp_delete_roi || []
+          state.statusRoi.temp_merge_roi = state.statusRoi.temp_merge_roi || []
+          state.statusRoi.temp_selected_roi =
+            state.statusRoi.temp_selected_roi || []
+
+          const index = state.statusRoi.temp_selected_roi.indexOf(roiIndex)
+          if (index === -1) {
+            // If not selected, add it
+            state.statusRoi.temp_selected_roi.push(roiIndex)
+          } else {
+            // If already selected, remove it
+            state.statusRoi.temp_selected_roi.splice(index, 1)
+          }
+        },
+      )
       .addMatcher(
         isAnyOf(
           cancelRoi.pending,

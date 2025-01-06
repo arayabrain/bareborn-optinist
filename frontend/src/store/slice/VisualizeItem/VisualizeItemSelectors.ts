@@ -608,3 +608,6 @@ export const selectImageItemRangeUnit =
       throw new Error("invalid VisualaizeItemType")
     }
   }
+
+export const selectClickedRoi = (itemId: number) => (state: RootState) =>
+  state.visualaizeItem.clickedRois[itemId] || null

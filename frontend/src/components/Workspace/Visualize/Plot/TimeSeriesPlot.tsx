@@ -10,6 +10,7 @@ import { LinearProgress, Typography } from "@mui/material"
 import { TimeSeriesData } from "api/outputs/Outputs"
 import { DisplayDataContext } from "components/Workspace/Visualize/DataContext"
 import {
+  clickRoi,
   getTimeSeriesDataById,
   getTimeSeriesInitData,
 } from "store/slice/DisplayData/DisplayDataActions"
@@ -281,11 +282,11 @@ const TimeSeriesPlotImple = memo(function TimeSeriesPlotImple() {
   }
 
   const onLegendClick = (event: LegendClickEvent) => {
-    const clickNumber = dataKeys[event.curveNumber]
+    const clickedSeriesId = dataKeys[event.curveNumber]
 
-    const newDrawOrderList = drawOrderList.includes(clickNumber)
-      ? drawOrderList.filter((value) => value !== clickNumber)
-      : [...drawOrderList, clickNumber]
+    const newDrawOrderList = drawOrderList.includes(clickedSeriesId)
+      ? drawOrderList.filter((value) => value !== clickedSeriesId)
+      : [...drawOrderList, clickedSeriesId]
 
     dispatch(
       setTimeSeriesItemDrawOrderList({
@@ -293,10 +294,15 @@ const TimeSeriesPlotImple = memo(function TimeSeriesPlotImple() {
         drawOrderList: newDrawOrderList,
       }),
     )
+    dispatch(
+      clickRoi({
+        roiIndex: Number(clickedSeriesId),
+      }),
+    )
 
     // set DisplayNumbers
-    if (!drawOrderList.includes(clickNumber)) {
-      dispatch(getTimeSeriesDataById({ path, index: clickNumber }))
+    if (!drawOrderList.includes(clickedSeriesId)) {
+      dispatch(getTimeSeriesDataById({ path, index: clickedSeriesId }))
     }
 
     return false
