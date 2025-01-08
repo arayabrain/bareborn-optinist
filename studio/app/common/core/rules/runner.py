@@ -2,13 +2,13 @@ import copy
 import gc
 import json
 import os
-import signal
+import time
 import traceback
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import HTTPException
+import numpy as np
 from filelock import FileLock
 
 from studio.app.common.core.experiment.experiment import ExptOutputPathIds
@@ -19,13 +19,17 @@ from studio.app.common.core.snakemake.smk import Rule
 from studio.app.common.core.utils.file_reader import JsonReader
 from studio.app.common.core.utils.filepath_creater import join_filepath
 from studio.app.common.core.utils.pickle_handler import PickleReader, PickleWriter
+from studio.app.common.core.workflow.workflow import DataFilterParam
+from studio.app.common.schemas.workflow import WorkflowPIDFileData
 from studio.app.const import DATE_FORMAT
 from studio.app.dir_path import DIRPATH
+from studio.app.optinist.core.nwb.nwb import NWBDATASET
 from studio.app.optinist.core.nwb.nwb_creater import (
     merge_nwbfile,
     overwrite_nwbfile,
     save_nwb,
 )
+from studio.app.optinist.dataclass import FluoData, IscellData, RoiData
 from studio.app.wrappers import wrapper_dict
 
 logger = AppLogger.get_logger()
@@ -40,9 +44,10 @@ class Runner:
             logger.info("start rule runner")
 
             # write pid file
-            cls.__write_pid_file(__rule, run_script_path)
+            workflow_dirpath = str(Path(__rule.output).parent.parent)
+            cls.write_pid_file(workflow_dirpath, run_script_path)
 
-            input_info = cls.__read_input_info(__rule.input)
+            input_info = cls.read_input_info(__rule.input)
             cls.__change_dict_key_exist(input_info, __rule)
             nwbfile = input_info["nwbfile"]
 
@@ -53,14 +58,27 @@ class Runner:
 
             cls.__set_func_start_timestamp(os.path.dirname(__rule.output))
 
-            # output_info
-            output_info = cls.__execute_function(
-                __rule.path,
-                __rule.params,
-                nwbfile.get("input"),
-                os.path.dirname(__rule.output),
-                input_info,
-            )
+            dataFilterParam = DataFilterParam(**__rule.dataFilterParam)
+            bak_output = __rule.output + ".bak"
+            if not dataFilterParam.is_empty and os.path.exists(bak_output):
+                bak_output_info = PickleReader.read(bak_output)
+                output_info = cls.__filter_data(
+                    bak_output_info,
+                    dataFilterParam,
+                    __rule.type,
+                    output_dir=os.path.dirname(__rule.output),
+                )
+            else:
+                if os.path.exists(bak_output):
+                    os.remove(bak_output)
+                # output_info
+                output_info = cls.__execute_function(
+                    __rule.path,
+                    __rule.params,
+                    nwbfile.get("input"),
+                    os.path.dirname(__rule.output),
+                    input_info,
+                )
 
             # nwbfileの設定
             output_info["nwbfile"] = cls.__save_func_nwb(
@@ -106,23 +124,31 @@ class Runner:
         return pid_file_path
 
     @classmethod
-    def __write_pid_file(cls, __rule: Rule, run_script_path: str) -> None:
+    def write_pid_file(cls, workflow_dirpath: str, run_script_path: str) -> None:
         """
         save snakemake script file path and PID of current running algo function
         """
-        pid_data = {"last_pid": os.getpid(), "last_script_file": run_script_path}
+        pid_data = WorkflowPIDFileData(
+            last_pid=os.getpid(),
+            last_script_file=run_script_path,
+            create_time=time.time(),
+        )
 
-        workflow_dirpath = str(Path(__rule.output).parent.parent)
         ids = ExptOutputPathIds(workflow_dirpath)
         pid_file_path = cls.__get_pid_file_path(ids.workspace_id, ids.unique_id)
 
         with open(pid_file_path, "w") as f:
-            json.dump(pid_data, f)
+            json.dump(asdict(pid_data), f)
 
     @classmethod
-    def read_pid_file(cls, workspace_id: str, unique_id: str) -> dict:
+    def read_pid_file(cls, workspace_id: str, unique_id: str) -> WorkflowPIDFileData:
         pid_file_path = cls.__get_pid_file_path(workspace_id, unique_id)
-        pid_data = JsonReader.read(pid_file_path)
+        if not os.path.exists(pid_file_path):
+            return None
+
+        pid_data_json = JsonReader.read(pid_file_path)
+        pid_data = WorkflowPIDFileData(**pid_data_json)
+
         return pid_data
 
     @classmethod
@@ -186,7 +212,7 @@ class Runner:
                 input_info[arg_name] = input_info.pop(return_name)
 
     @classmethod
-    def __read_input_info(cls, input_files):
+    def read_input_info(cls, input_files):
         input_info = {}
         for filepath in input_files:
             load_data = PickleReader.read(filepath)
@@ -224,53 +250,72 @@ class Runner:
             return root_dict[path]
 
     @classmethod
-    def cancel_run(cls, workspace_id: str, unique_id: str):
-        """
-        The algorithm function of this workflow is being executed at the line:
-        https://github.com/snakemake/snakemake/blob/27b224ed12448df8aebc7d1ff8f25e3bf7622232/snakemake/shell.py#L258
-        ```
-        proc = sp.Popen(
-            cmd,
-            bufsize=-1,
-            shell=use_shell,
-            stdout=stdout,
-            universal_newlines=iterable or read or None,
-            close_fds=close_fds,
-            **cls._process_args,
-            env=envvars,
-        )
-        ```
-        The `cmd` argument has the following format:
-        ```
-        source ~/miniconda3/bin/activate
-        '/app/.snakemake/conda/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_';
-        set -euo pipefail;
-        python /app/.snakemake/scripts/tmpxxxxxxxx.func.py
-        ```
-        Interrupt the conda activate at the beginning of the process is impossible
-        because it is only called when each algorithm function executes.
-        This workflow is cancelled by killing process via PID of algorithm function
-        saved in `RUN_PROCESS_PID_FILE` file
-        Raises:
-            HTTPException: if pid_filepath or last_script_file does not exist
-        """
+    def __filter_data(
+        cls,
+        output_info: dict,
+        data_filter_param: DataFilterParam,
+        type: str,
+        output_dir=DIRPATH.OUTPUT_DIR,
+    ) -> dict:
+        im = output_info["edit_roi_data"].im
+        fluorescence = output_info["fluorescence"].data
+        dff = output_info["dff"].data if output_info.get("dff") else None
+        iscell = output_info["iscell"].data
 
-        pid_filepath = cls.__get_pid_file_path(workspace_id, unique_id)
+        if data_filter_param.dim1:
+            dim1_filter_mask = data_filter_param.dim1_mask(max_size=im.shape[1])
+            im[:, ~dim1_filter_mask, :] = np.nan
 
-        if not os.path.exists(pid_filepath):
-            raise HTTPException(status_code=404)
+        if data_filter_param.dim2:
+            dim2_filter_mask = data_filter_param.dim2_mask(max_size=im.shape[2])
+            im[:, :, ~dim2_filter_mask] = np.nan
 
-        pid_data = cls.read_pid_file(workspace_id, unique_id)
-        last_pid = pid_data["last_pid"]
-        last_script_file = pid_data["last_script_file"]
-
-        if not os.path.exists(last_script_file):
-            logger.warning(
-                f"The run script has not yet started. script: {last_script_file}"
+        if data_filter_param.dim3:
+            dim3_filter_mask = data_filter_param.dim3_mask(
+                max_size=fluorescence.shape[1]
             )
-            raise HTTPException(status_code=404)
+            fluorescence[:, ~dim3_filter_mask] = np.nan
+            if dff is not None:
+                dff[:, ~dim3_filter_mask] = np.nan
 
-        os.remove(last_script_file)
-        os.kill(last_pid, signal.SIGTERM)
+        if data_filter_param.roi:
+            roi_filter_mask = data_filter_param.roi_mask(max_size=im.shape[0])
+            iscell[~roi_filter_mask] = False
 
-        return True
+        output_info["edit_roi_data"].im = im
+
+        nwbfile = output_info["nwbfile"][type]
+        function_id = list(nwbfile[NWBDATASET.POSTPROCESS].keys())[0]
+        nwbfile[NWBDATASET.POSTPROCESS][function_id]["all_roi_img"] = im
+        nwbfile[NWBDATASET.COLUMN][function_id]["data"] = iscell
+        nwbfile[NWBDATASET.FLUORESCENCE][function_id]["Fluorescence"][
+            "data"
+        ] = fluorescence.T
+
+        info = {
+            **output_info,
+            "cell_roi": RoiData(
+                np.nanmax(im[iscell != 0], axis=0, initial=np.nan),
+                output_dir=output_dir,
+                file_name="cell_roi",
+            ),
+            "fluorescence": FluoData(fluorescence, file_name="fluorescence"),
+            "iscell": IscellData(iscell),
+            "nwbfile": nwbfile,
+        }
+
+        if dff is not None:
+            info["dff"] = FluoData(dff, file_name="dff")
+        else:
+            info["all_roi"] = RoiData(
+                np.nanmax(im, axis=0, initial=np.nan),
+                output_dir=output_dir,
+                file_name="all_roi",
+            )
+            info["non_cell_roi"] = RoiData(
+                np.nanmax(im[iscell == 0], axis=0, initial=np.nan),
+                output_dir=output_dir,
+                file_name="non_cell_roi",
+            )
+
+        return info

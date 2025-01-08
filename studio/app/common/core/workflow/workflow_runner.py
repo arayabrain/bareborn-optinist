@@ -1,3 +1,5 @@
+import os
+import shutil
 import uuid
 from dataclasses import asdict
 from typing import Dict, List
@@ -11,10 +13,16 @@ from studio.app.common.core.snakemake.snakemake_executor import (
 from studio.app.common.core.snakemake.snakemake_reader import SmkParamReader
 from studio.app.common.core.snakemake.snakemake_rule import SmkRule
 from studio.app.common.core.snakemake.snakemake_writer import SmkConfigWriter
-from studio.app.common.core.workflow.workflow import NodeType, NodeTypeUtil, RunItem
+from studio.app.common.core.utils.filepath_creater import get_pickle_file, join_filepath
+from studio.app.common.core.workflow.workflow import (
+    DataFilterParam,
+    NodeType,
+    NodeTypeUtil,
+    RunItem,
+)
 from studio.app.common.core.workflow.workflow_params import get_typecheck_params
-from studio.app.common.core.workflow.workflow_reader import WorkflowConfigReader
 from studio.app.common.core.workflow.workflow_writer import WorkflowConfigWriter
+from studio.app.dir_path import DIRPATH
 
 
 class WorkflowRunner:
@@ -22,8 +30,10 @@ class WorkflowRunner:
         self.workspace_id = workspace_id
         self.unique_id = unique_id
         self.runItem = runItem
-        self.nodeDict = WorkflowConfigReader.read_nodeDict(self.runItem.nodeDict)
-        self.edgeDict = WorkflowConfigReader.read_edgeDict(self.runItem.edgeDict)
+        self.nodeDict = self.runItem.nodeDict
+        self.edgeDict = self.runItem.edgeDict
+
+        self.check_data_filter_param()
 
         WorkflowConfigWriter(
             self.workspace_id,
@@ -140,3 +150,30 @@ class WorkflowRunner:
             if value == 0:
                 endNodeList.append(key)
         return endNodeList
+
+    def check_data_filter_param(self):
+        dataFilterNodes = [
+            node
+            for node in self.nodeDict.values()
+            if node.data.dataFilterParam and not node.data.dataFilterParam.is_empty
+        ]
+
+        for node in dataFilterNodes:
+            node_pickle_file_path = join_filepath(
+                [
+                    DIRPATH.OUTPUT_DIR,
+                    get_pickle_file(
+                        self.workspace_id,
+                        self.unique_id,
+                        node.id,
+                        node.data.label.split(".")[0],
+                    ),
+                ]
+            )
+            if not os.path.exists(node_pickle_file_path):
+                self.nodeDict[node.id].data.dataFilterParam = DataFilterParam()
+            else:
+                # backup current pkl cause snakemake removes it if detects param change
+                backup_node_pickle_file_path = node_pickle_file_path + ".bak"
+                if not os.path.exists(backup_node_pickle_file_path):
+                    shutil.copyfile(node_pickle_file_path, backup_node_pickle_file_path)

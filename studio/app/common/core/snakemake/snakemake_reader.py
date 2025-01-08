@@ -14,6 +14,7 @@ class RuleConfigReader:
             hdf5Path=rule["hdf5Path"],
             matPath=rule["matPath"],
             path=rule["path"],
+            dataFilterParam=rule.get("dataFilterParam", {}),
         )
 
 

@@ -3,9 +3,11 @@ from typing import Dict
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from studio.app.common.core.logger import AppLogger
-from studio.app.common.core.rules.runner import Runner
 from studio.app.common.core.workflow.workflow import Message, NodeItem, RunItem
-from studio.app.common.core.workflow.workflow_result import WorkflowResult
+from studio.app.common.core.workflow.workflow_result import (
+    WorkflowMonitor,
+    WorkflowResult,
+)
 from studio.app.common.core.workflow.workflow_runner import WorkflowRunner
 from studio.app.common.core.workspace.workspace_dependencies import (
     is_workspace_available,
@@ -48,7 +50,8 @@ async def run_id(
     workspace_id: str, uid: str, runItem: RunItem, background_tasks: BackgroundTasks
 ):
     try:
-        WorkflowRunner(workspace_id, uid, runItem).run_workflow(background_tasks)
+        workflow_runner = WorkflowRunner(workspace_id, uid, runItem)
+        workflow_runner.run_workflow(background_tasks)
 
         logger.info("run snakemake")
         logger.info("forcerun list: %s", runItem.forceRunList)
@@ -86,7 +89,7 @@ async def run_result(workspace_id: str, uid: str, nodeDict: NodeItem):
 )
 async def cancel_run(workspace_id: str, uid: str):
     try:
-        return Runner.cancel_run(workspace_id, uid)
+        return WorkflowMonitor(workspace_id, uid).cancel_run()
     except HTTPException as e:
         logger.error(e)
         raise e

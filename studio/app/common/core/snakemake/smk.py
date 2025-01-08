@@ -15,6 +15,7 @@ class Rule:
     hdf5Path: str = None
     matPath: str = None
     path: str = None
+    dataFilterParam: dict = field(default_factory=dict)
 
 
 @dataclass
