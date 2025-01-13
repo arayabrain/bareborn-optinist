@@ -5,6 +5,7 @@ import { getAlgoParams } from "store/slice/AlgorithmNode/AlgorithmNodeActions"
 import {
   ALGORITHM_NODE_SLICE_NAME,
   AlgorithmNode,
+  TDataFilterParam,
 } from "store/slice/AlgorithmNode/AlgorithmNodeType"
 import { addAlgorithmNode } from "store/slice/FlowElement/FlowElementActions"
 import {
@@ -48,6 +49,24 @@ export const algorithmNodeSlice = createSlice({
         }
       }
     },
+    updateFilterParams: (
+      state,
+      action: PayloadAction<{
+        nodeId: string
+        dataFilterParam: TDataFilterParam
+      }>,
+    ) => {
+      const { nodeId, dataFilterParam } = action.payload
+      state[nodeId].dataFilterParam = dataFilterParam
+      state[nodeId].isUpdateFilter =
+        JSON.stringify(dataFilterParam) !==
+        JSON.stringify(state[nodeId]?.originalDataFilterValue)
+    },
+    resetDataFilterParams: (state, action: PayloadAction<string>) => {
+      state[action.payload].dataFilterParam = state[action.payload]
+        .originalDataFilterValue as TDataFilterParam
+      state[action.payload].isUpdateFilter = false
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -60,11 +79,12 @@ export const algorithmNodeSlice = createSlice({
         const params = action.payload
         if (node.data?.type === NODE_TYPE_SET.ALGORITHM) {
           state[node.id] = {
+            ...state[node.id],
             functionPath,
             name,
             params: convertToParamMap(params),
-            originalValue: state[node.id]?.originalValue,
             isUpdate: runAlready ?? false,
+            isUpdateFilter: runAlready ?? false,
           }
         }
       })
@@ -80,6 +100,25 @@ export const algorithmNodeSlice = createSlice({
         if (Object.keys(state).includes(action.payload)) {
           delete state[action.payload]
         }
+      })
+      .addCase(run.fulfilled, (state, action) => {
+        const runPostData = action.meta.arg.runPostData
+        Object.values(runPostData.nodeDict)
+          .filter(isAlgorithmNodePostData)
+          .forEach((node) => {
+            if (state[node.id].dataFilterParam) {
+              state[node.id].dataFilterParam = undefined
+            }
+          })
+      })
+      .addCase(runByCurrentUid.fulfilled, (state, action) => {
+        const runPostData = action.meta.arg.runPostData
+        Object.values(runPostData.nodeDict)
+          .filter(isAlgorithmNodePostData)
+          .forEach((node) => {
+            state[node.id].originalDataFilterValue =
+              state[node.id].dataFilterParam
+          })
       })
       .addMatcher(
         isAnyOf(
@@ -97,8 +136,11 @@ export const algorithmNodeSlice = createSlice({
                   name: node.data.label,
                   functionPath: node.data.path,
                   params: node.data.param,
+                  dataFilterParam: node.data.dataFilterParam,
                   originalValue: node.data.param,
+                  originalDataFilterValue: node.data.dataFilterParam,
                   isUpdate: false,
+                  isUpdateFilter: false,
                 }
               }
             })
@@ -113,11 +155,13 @@ export const algorithmNodeSlice = createSlice({
             .filter(isAlgorithmNodePostData)
             .forEach((node) => {
               state[node.id].isUpdate = false
+              state[node.id].isUpdateFilter = false
             })
         },
       )
   },
 })
 
-export const { updateParam } = algorithmNodeSlice.actions
+export const { updateParam, updateFilterParams, resetDataFilterParams } =
+  algorithmNodeSlice.actions
 export default algorithmNodeSlice.reducer

@@ -8,6 +8,10 @@ import { LegendClickEvent } from "plotly.js"
 import { LinearProgress, Typography } from "@mui/material"
 
 import { TimeSeriesData } from "api/outputs/Outputs"
+import {
+  DialogContext,
+  useRoisSelected,
+} from "components/Workspace/FlowChart/Dialog/DialogContext"
 import { DisplayDataContext } from "components/Workspace/Visualize/DataContext"
 import {
   getTimeSeriesDataById,
@@ -99,6 +103,8 @@ const TimeSeriesPlotImple = memo(function TimeSeriesPlotImple() {
   const [newTimeSeriesData, setNewTimeSeriesData] = useState(timeSeriesData)
   const currentPipelineUid = useSelector(selectPipelineLatestUid)
   const frameRate = useSelector(selectFrameRate(currentPipelineUid))
+  const { dialogFilterNodeId } = useContext(DialogContext)
+  const { setRoiSelected } = useRoisSelected()
 
   useEffect(() => {
     const seriesData: TimeSeriesData = {}
@@ -129,9 +135,14 @@ const TimeSeriesPlotImple = memo(function TimeSeriesPlotImple() {
     //eslint-disable-next-line
   }, [rangeUnit, dataXrange, timeSeriesData, drawOrderList])
 
+  const nshades = useMemo(() => {
+    if (!dataKeys?.length) return 6
+    return Math.max(...dataKeys.map((e) => Number(e)))
+  }, [dataKeys])
+
   const colorScale = createColormap({
     colormap: "jet",
-    nshades: 100, //maxIndex >= 6 ? maxIndex : 6,
+    nshades: nshades, //maxIndex >= 6 ? maxIndex : 6,
     format: "hex",
     alpha: 1,
   })
@@ -140,8 +151,7 @@ const TimeSeriesPlotImple = memo(function TimeSeriesPlotImple() {
     return Object.fromEntries(
       dataKeys.map((key) => {
         let y = newDataXrange.map((x) => newTimeSeriesData[key]?.[x])
-        const i = Number(key)
-        const new_i = Math.floor((i % 10) * 10 + i / 10) % 100
+        const new_i = Number(key)
         if (drawOrderList.includes(key) && !stdBool) {
           const activeIdx: number = drawOrderList.findIndex((v) => v === key)
           const mean: number = y.reduce((a, b) => a + b) / y.length
@@ -282,6 +292,11 @@ const TimeSeriesPlotImple = memo(function TimeSeriesPlotImple() {
 
   const onLegendClick = (event: LegendClickEvent) => {
     const clickNumber = dataKeys[event.curveNumber]
+
+    if (dialogFilterNodeId) {
+      setRoiSelected(Number(clickNumber))
+      return false
+    }
 
     const newDrawOrderList = drawOrderList.includes(clickNumber)
       ? drawOrderList.filter((value) => value !== clickNumber)

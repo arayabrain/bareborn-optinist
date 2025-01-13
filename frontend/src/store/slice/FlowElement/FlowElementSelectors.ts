@@ -27,7 +27,28 @@ const selectParentNodeIdsById = (nodeId: string) => (state: RootState) =>
     .map((edge) => edge.source)
 
 const selectNodeIsUpdate = (nodeId: string) => (state: RootState) =>
+  state.algorithmNode[nodeId]?.isUpdate ||
+  state.algorithmNode[nodeId]?.isUpdateFilter
+
+const selectNodeParamsUpdated = (nodeId: string) => (state: RootState) =>
   state.algorithmNode[nodeId]?.isUpdate
+
+export const isParentNodeUpdatedParams =
+  (nodeId: string) =>
+  (state: RootState): boolean => {
+    const parentNodes = selectParentNodeIdsById(nodeId)(state)
+    if (parentNodes.length === 0) {
+      return false
+    } else {
+      if (parentNodes.some((id) => selectNodeParamsUpdated(id)(state))) {
+        return true
+      } else {
+        return parentNodes.some((id) =>
+          selectAncestorNodesOriginalValueById(id)(state),
+        )
+      }
+    }
+  }
 
 export const selectAncestorNodesOriginalValueById =
   (nodeId: string) =>

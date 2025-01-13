@@ -709,8 +709,8 @@ const ImagePlotChart = memo(function ImagePlotChart({
                   action === DELETE_ROI
                     ? "#F84E1B"
                     : action === MERGE_ROI
-                    ? "#6619A9"
-                    : "default",
+                      ? "#6619A9"
+                      : "default",
                 display: "flex",
                 gap: 1,
                 textDecoration: "none",
@@ -989,7 +989,7 @@ interface PlotDatum {
   z: number
 }
 
-function rgba2hex(rgba: number[], alpha: number) {
+export function rgba2hex(rgba: number[], alpha: number) {
   const r = rgba[0]
   const g = rgba[1]
   const b = rgba[2]

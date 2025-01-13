@@ -1,4 +1,4 @@
-import { memo, useContext, useRef, useState } from "react"
+import { memo, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { Handle, Position, NodeProps } from "reactflow"
 
@@ -32,7 +32,11 @@ import {
   selectAlgorithmIsUpdated,
   selectAlgorithmNodeDefined,
 } from "store/slice/AlgorithmNode/AlgorithmNodeSelectors"
-import { selectAncestorNodesOriginalValueById } from "store/slice/FlowElement/FlowElementSelectors"
+import { resetDataFilterParams } from "store/slice/AlgorithmNode/AlgorithmNodeSlice"
+import {
+  isParentNodeUpdatedParams,
+  selectAncestorNodesOriginalValueById,
+} from "store/slice/FlowElement/FlowElementSelectors"
 import { deleteFlowNodeById } from "store/slice/FlowElement/FlowElementSlice"
 import { NodeData, NodeIdProps } from "store/slice/FlowElement/FlowElementType"
 import {
@@ -65,7 +69,7 @@ const AlgorithmNodeImple = memo(function AlgorithmNodeImple({
   isConnectable,
   data,
 }: NodeProps<NodeData>) {
-  const { onOpenOutputDialog } = useContext(DialogContext)
+  const { onOpenOutputDialog, onOpenFilterDialog } = useContext(DialogContext)
   const dispatch = useDispatch()
 
   const onClickParamButton = () => {
@@ -80,14 +84,34 @@ const AlgorithmNodeImple = memo(function AlgorithmNodeImple({
     onOpenOutputDialog(nodeId)
   }
 
+  const onClickFilterButton = () => {
+    onOpenFilterDialog(nodeId)
+  }
+
   const status = useStatus(nodeId)
   const workflowId = useSelector(selectPipelineLatestUid)
   const ancestorIsUpdated = useSelector(
     selectAncestorNodesOriginalValueById(nodeId),
   )
   const isUpdated = useSelector(selectAlgorithmIsUpdated(nodeId))
+  const isParentParamsUpdated = useSelector(isParentNodeUpdatedParams(nodeId))
+
+  useEffect(() => {
+    if (isParentParamsUpdated) {
+      dispatch(resetDataFilterParams(nodeId))
+    }
+  }, [dispatch, isParentParamsUpdated, nodeId])
+
   const updated =
     typeof workflowId !== "undefined" && (isUpdated || ancestorIsUpdated)
+
+  const allowFilter = useMemo(
+    () =>
+      ["suite2p_roi", "caiman_cnmf", "lccd_cell_detection"].includes(
+        data.label,
+      ),
+    [data.label],
+  )
 
   return (
     <NodeContainer
@@ -122,17 +146,21 @@ const AlgorithmNodeImple = memo(function AlgorithmNodeImple({
         <Button
           size="small"
           onClick={onClickOutputButton}
-          disabled={
-            !status ||
-            [
-              NODE_RESULT_STATUS.PENDING,
-              NODE_RESULT_STATUS.ERROR,
-              "uninitialized",
-            ].includes(status)
-          }
+          disabled={status !== NODE_RESULT_STATUS.SUCCESS}
         >
           Output
         </Button>
+        {allowFilter && (
+          <Button
+            size="small"
+            onClick={onClickFilterButton}
+            disabled={
+              status !== NODE_RESULT_STATUS.SUCCESS || isParentParamsUpdated
+            }
+          >
+            Filter
+          </Button>
+        )}
       </ButtonGroup>
       <AlgoArgs nodeId={nodeId} />
       <AlgoReturns nodeId={nodeId} isConnectable={isConnectable} />
@@ -350,7 +378,7 @@ const Message = memo(function Message({ nodeId }: NodeIdProps) {
   const latestUid = useSelector(selectPipelineLatestUid)
   const errorMsg = useSelector((state: RootState) =>
     latestUid != null
-      ? selectPipelineNodeResultMessage(nodeId)(state) ?? null
+      ? (selectPipelineNodeResultMessage(nodeId)(state) ?? null)
       : null,
   )
 

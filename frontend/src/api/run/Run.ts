@@ -1,6 +1,7 @@
 import type { Edge, Node } from "reactflow"
 
 import { BASE_URL } from "const/API"
+import { TDataFilterParam } from "store/slice/AlgorithmNode/AlgorithmNodeType"
 import type {
   AlgorithmNodeData,
   InputNodeData,
@@ -34,6 +35,7 @@ export interface InputNodePostData extends InputNodeData {
   param?: {
     [key: string]: unknown
   }
+  dataFilterParam?: TDataFilterParam
   hdf5Path?: string
   matPath?: string
 }
@@ -41,6 +43,7 @@ export interface InputNodePostData extends InputNodeData {
 export interface AlgorithmNodePostData extends AlgorithmNodeData {
   path: string
   param: ParamMap
+  dataFilterParam?: TDataFilterParam
 }
 
 export async function runApi(

@@ -3,9 +3,14 @@ import PlotlyChart from "react-plotlyjs-ts"
 import { useSelector, useDispatch } from "react-redux"
 
 import createColormap from "colormap"
+import { PlotMouseEvent } from "plotly.js"
 
 import { LinearProgress, Typography } from "@mui/material"
 
+import {
+  DialogContext,
+  useRoisSelected,
+} from "components/Workspace/FlowChart/Dialog/DialogContext"
 import { DisplayDataContext } from "components/Workspace/Visualize/DataContext"
 import { getRoiData } from "store/slice/DisplayData/DisplayDataActions"
 import {
@@ -17,12 +22,12 @@ import {
   selectRoiMeta,
 } from "store/slice/DisplayData/DisplayDataSelectors"
 import {
+  selectRoiItemIndex,
   selectVisualizeItemHeight,
   selectVisualizeItemWidth,
   selectVisualizeSaveFilename,
   selectVisualizeSaveFormat,
 } from "store/slice/VisualizeItem/VisualizeItemSelectors"
-import { ColorType } from "store/slice/VisualizeItem/VisualizeItemType"
 import { selectCurrentWorkspaceId } from "store/slice/Workspace/WorkspaceSelector"
 import { AppDispatch } from "store/store"
 import { twoDimarrayEqualityFn } from "utils/EqualityUtils"
@@ -58,15 +63,25 @@ const RoiPlotImple = memo(function RoiPlotImple() {
   const meta = useSelector(selectRoiMeta(path))
   const width = useSelector(selectVisualizeItemWidth(itemId))
   const height = useSelector(selectVisualizeItemHeight(itemId))
+  const { dialogFilterNodeId } = useContext(DialogContext)
+  const timeDataMaxIndex = useSelector(selectRoiItemIndex(itemId, path))
+  const { setRoiSelected, roisSelected } = useRoisSelected()
 
-  const colorscale: ColorType[] = createColormap({
+  const lengthColor = Math.max(dialogFilterNodeId ? timeDataMaxIndex : 10, 6)
+
+  const colorscale = createColormap({
     colormap: "jet",
-    nshades: 10,
+    nshades: lengthColor,
     format: "hex",
     alpha: 1,
   }).map((v, idx) => {
-    return { rgb: v, offset: String(idx / 9) }
+    return { rgb: v, offset: String(idx / (lengthColor - 1)) }
   })
+
+  const onChartClick = (event: PlotMouseEvent) => {
+    const point = event.points[0] as unknown as { z: number }
+    setRoiSelected(point.z)
+  }
 
   const data = useMemo(
     () => [
@@ -74,27 +89,26 @@ const RoiPlotImple = memo(function RoiPlotImple() {
         z: imageData,
         type: "heatmap",
         name: "roi",
-        colorscale: colorscale.map((value) => {
-          let offset: number = parseFloat(value.offset)
-          const offsets: number[] = colorscale.map((v) => {
-            return parseFloat(v.offset)
-          })
-          // plotlyは端[0.0, 1.0]がないとダメなので、その設定
-          if (offset === Math.max(...offsets)) {
-            offset = 1.0
-          }
-          if (offset === Math.min(...offsets)) {
-            offset = 0.0
+        hovertemplate: !dialogFilterNodeId ? undefined : "cell id: %{z}",
+        colorscale: colorscale.map((value, index) => {
+          const offset = parseFloat(value.offset)
+          if (
+            roisSelected.length &&
+            dialogFilterNodeId &&
+            !roisSelected.includes(index + 1)
+          ) {
+            return [offset, `${value.rgb}${(77).toString(16).toUpperCase()}`]
           }
           return [offset, value.rgb]
         }),
         hoverongaps: false,
         // zsmooth: zsmooth, // ['best', 'fast', false]
         zsmooth: false,
-        showlegend: true,
+        showlegend: !dialogFilterNodeId,
+        showscale: !dialogFilterNodeId,
       },
     ],
-    [imageData, colorscale],
+    [imageData, dialogFilterNodeId, colorscale, roisSelected],
   )
 
   const layout = useMemo(
@@ -141,7 +155,14 @@ const RoiPlotImple = memo(function RoiPlotImple() {
       filename: saveFileName,
     },
   }
-  return <PlotlyChart data={data} layout={layout} config={config} />
+  return (
+    <PlotlyChart
+      onClick={onChartClick}
+      data={data}
+      layout={layout}
+      config={config}
+    />
+  )
 })
 
 function imageDataEqualtyFn(

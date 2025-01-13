@@ -20,13 +20,32 @@ export const selectAlgorithmName = (nodeId: string) => (state: RootState) =>
 export const selectAlgorithmParams = (nodeId: string) => (state: RootState) =>
   selectAlgorithmNodeById(nodeId)(state)?.params
 
+export const selectAlgorithmDataFilterParam =
+  (nodeId: string) => (state: RootState) => {
+    return selectAlgorithmNodeById(nodeId)(state)?.dataFilterParam
+  }
+
+export const selectAlgorithmDataFilterParamObject =
+  (nodeId: string) => (state: RootState) => {
+    const dataFilterParam =
+      selectAlgorithmNodeById(nodeId)(state)?.dataFilterParam
+    if (!dataFilterParam) return undefined
+    const { dim1, roi } = dataFilterParam
+    return {
+      dim1: dim1?.filter(Boolean),
+      roi: roi?.filter(Boolean),
+    }
+  }
+
 export const selectAlgorithmIsUpdated =
   (nodeId: string) => (state: RootState) => {
     const isUpdate = selectAlgorithmNodeById(nodeId)(state).isUpdate
+    const isUpdateFilter = selectAlgorithmNodeById(nodeId)(state).isUpdateFilter
     const originalValue = selectAlgorithmNodeById(nodeId)(state).originalValue
     const param = selectAlgorithmParams(nodeId)(state)
     return (
-      !(JSON.stringify(originalValue) === JSON.stringify(param)) && isUpdate
+      isUpdateFilter ||
+      (!(JSON.stringify(originalValue) === JSON.stringify(param)) && isUpdate)
     )
   }
 export const selectAlgorithmParamsExit =
