@@ -2,10 +2,12 @@ import { memo, useCallback, useEffect } from "react"
 import { useDrag } from "react-dnd"
 import { useSelector, useDispatch } from "react-redux"
 
+import { useSnackbar } from "notistack"
+
 import AddIcon from "@mui/icons-material/Add"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-import { styled, Typography } from "@mui/material"
+import { Button, styled, Typography } from "@mui/material"
 import IconButton from "@mui/material/IconButton"
 import { treeItemClasses } from "@mui/x-tree-view"
 import { TreeItem } from "@mui/x-tree-view/TreeItem"
@@ -38,6 +40,9 @@ import {
 } from "store/slice/FlowElement/FlowElementType"
 import { FILE_TYPE, FILE_TYPE_SET } from "store/slice/InputNode/InputNodeType"
 import { selectPipelineLatestUid } from "store/slice/Pipeline/PipelineSelectors"
+import { reset } from "store/slice/VisualizeItem/VisualizeItemSlice"
+import { reproduceWorkflow } from "store/slice/Workflow/WorkflowActions"
+import { selectCurrentWorkspaceId } from "store/slice/Workspace/WorkspaceSelector"
 import { AppDispatch } from "store/store"
 import { getNanoId } from "utils/nanoid/NanoIdUtils"
 
@@ -79,63 +84,93 @@ export const AlgorithmTreeView = memo(function AlgorithmTreeView() {
     [dispatch, runAlready],
   )
 
+  // TODO: AutoReproduceAndRun Test
+  const { enqueueSnackbar } = useSnackbar()
+  const workspaceId = useSelector(selectCurrentWorkspaceId) || -1
+  const uid = "tutorial1"
+
+  // TODO: AutoReproduceAndRun Test
+  const onTestAutoReproduceAndRunAction = async () => {
+    // TODO: Exec Reproduce Workflow
+    await dispatch(reproduceWorkflow({ workspaceId, uid }))
+      .unwrap()
+      .then(() => {
+        enqueueSnackbar("Successfully reproduced.", { variant: "success" })
+        dispatch(reset())
+      })
+      .catch(() => {
+        enqueueSnackbar("Failed to reproduce", { variant: "error" })
+      })
+
+    // TODO: Run the Run Workflow here.
+    // Simply passing UseRunPipelineReturnType between components in props
+    //  and calling handleRunPipelineByUid() will not work.
+    //  (The workflow just before reproduce will be executed, etc.)
+  }
+
   return (
-    <TreeView
-      sx={{
-        flexGrow: 1,
-        height: "100%",
-      }}
-      defaultCollapseIcon={<ExpandMoreIcon />}
-      defaultExpandIcon={<ChevronRightIcon />}
-    >
-      <TreeItem nodeId="Data" label="Data">
-        <InputNodeComponent
-          fileName={"image"}
-          nodeName={"imageData"}
-          fileType={FILE_TYPE_SET.IMAGE}
-        />
-        <InputNodeComponent
-          fileName={"csv"}
-          nodeName={"csvData"}
-          fileType={FILE_TYPE_SET.CSV}
-        />
-        <InputNodeComponent
-          fileName={"hdf5"}
-          nodeName={"hdf5Data"}
-          fileType={FILE_TYPE_SET.HDF5}
-        />
-        <InputNodeComponent
-          fileName={"fluo"}
-          nodeName={"fluoData"}
-          fileType={FILE_TYPE_SET.FLUO}
-        />
-        <InputNodeComponent
-          fileName={"behavior"}
-          nodeName={"behaviorData"}
-          fileType={FILE_TYPE_SET.BEHAVIOR}
-        />
-        <InputNodeComponent
-          fileName={"matlab"}
-          nodeName={"matlabData"}
-          fileType={FILE_TYPE_SET.MATLAB}
-        />
-        <InputNodeComponent
-          fileName={"microscope"}
-          nodeName={"microscopeData"}
-          fileType={FILE_TYPE_SET.MICROSCOPE}
-        />
-      </TreeItem>
-      <TreeItem nodeId="Algorithm" label="Algorithm">
-        {Object.entries(algoList).map(([name, node], i) => (
-          <AlgoNodeComponentRecursive
-            name={name}
-            node={node}
-            onAddAlgoNode={onAddAlgoNode}
-            key={i.toFixed()}
+    <>
+      <TreeView
+        sx={{
+          flexGrow: 1,
+          height: "100%",
+        }}
+        defaultCollapseIcon={<ExpandMoreIcon />}
+        defaultExpandIcon={<ChevronRightIcon />}
+      >
+        <TreeItem nodeId="Data" label="Data">
+          <InputNodeComponent
+            fileName={"image"}
+            nodeName={"imageData"}
+            fileType={FILE_TYPE_SET.IMAGE}
           />
-        ))}
-      </TreeItem>
-    </TreeView>
+          <InputNodeComponent
+            fileName={"csv"}
+            nodeName={"csvData"}
+            fileType={FILE_TYPE_SET.CSV}
+          />
+          <InputNodeComponent
+            fileName={"hdf5"}
+            nodeName={"hdf5Data"}
+            fileType={FILE_TYPE_SET.HDF5}
+          />
+          <InputNodeComponent
+            fileName={"fluo"}
+            nodeName={"fluoData"}
+            fileType={FILE_TYPE_SET.FLUO}
+          />
+          <InputNodeComponent
+            fileName={"behavior"}
+            nodeName={"behaviorData"}
+            fileType={FILE_TYPE_SET.BEHAVIOR}
+          />
+          <InputNodeComponent
+            fileName={"matlab"}
+            nodeName={"matlabData"}
+            fileType={FILE_TYPE_SET.MATLAB}
+          />
+          <InputNodeComponent
+            fileName={"microscope"}
+            nodeName={"microscopeData"}
+            fileType={FILE_TYPE_SET.MICROSCOPE}
+          />
+        </TreeItem>
+        <TreeItem nodeId="Algorithm" label="Algorithm">
+          {Object.entries(algoList).map(([name, node], i) => (
+            <AlgoNodeComponentRecursive
+              name={name}
+              node={node}
+              onAddAlgoNode={onAddAlgoNode}
+              key={i.toFixed()}
+            />
+          ))}
+        </TreeItem>
+      </TreeView>
+
+      <Button onClick={() => onTestAutoReproduceAndRunAction()}>
+        Auto Reproduce and Run
+      </Button>
+    </>
   )
 })
 
