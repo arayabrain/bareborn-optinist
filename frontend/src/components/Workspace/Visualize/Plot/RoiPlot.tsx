@@ -92,6 +92,7 @@ const RoiPlotImple = memo(function RoiPlotImple() {
         // zsmooth: zsmooth, // ['best', 'fast', false]
         zsmooth: false,
         showlegend: true,
+        hovertemplate: "ROI: %{z}",
       },
     ],
     [imageData, colorscale],

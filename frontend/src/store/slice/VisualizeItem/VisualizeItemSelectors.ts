@@ -608,3 +608,13 @@ export const selectImageItemRangeUnit =
       throw new Error("invalid VisualaizeItemType")
     }
   }
+
+export const selectImageItemShowRoiLabels =
+  (itemId: number) => (state: RootState) => {
+    const item = selectVisualizeItemById(itemId)(state)
+    if (isImageItem(item)) {
+      return item.showRoiLabels
+    } else {
+      throw new Error("invalid VisualaizeItemType")
+    }
+  }
