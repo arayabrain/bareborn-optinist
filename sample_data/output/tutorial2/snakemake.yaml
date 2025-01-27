@@ -1,9 +1,9 @@
 rules:
   caiman_mc_p4f6nsi9bh:
     input:
-    - 1/tutorial2/input_0/sample_mouse2p_image.pkl
+    - 1/tutorial2/input_cdgkgmc5oq/sample_mouse2p_image.pkl
     return_arg:
-      input_0: image
+      input_cdgkgmc5oq: image
     params:
       border_nan: copy
       gSig_filt: null
@@ -36,12 +36,12 @@ rules:
     hdf5Path: null
     matPath: null
     path: caiman/caiman_mc
-  input_0:
+  input_cdgkgmc5oq:
     input:
     - 1/sample_mouse2p_image.tiff
-    return_arg: input_0
+    return_arg: input_cdgkgmc5oq
     params: {}
-    output: 1/tutorial2/input_0/sample_mouse2p_image.pkl
+    output: 1/tutorial2/input_cdgkgmc5oq/sample_mouse2p_image.pkl
     type: image
     nwbfile:
       session_description: optinist

@@ -101,8 +101,8 @@ nodeDict:
       padding: 0
       width: 250
       borderRadius: 0
-  input_0:
-    id: input_0
+  input_cdgkgmc5oq:
+    id: input_cdgkgmc5oq
     type: ImageFileNode
     data:
       label: sample_mouse2p_image.tiff
@@ -542,12 +542,12 @@ nodeDict:
       width: 250
       borderRadius: 0
 edgeDict:
-  reactflow__edge-input_0input_0--image--ImageData-caiman_mc_p4f6nsi9bhcaiman_mc_p4f6nsi9bh--image--ImageData:
-    id: reactflow__edge-input_0input_0--image--ImageData-caiman_mc_p4f6nsi9bhcaiman_mc_p4f6nsi9bh--image--ImageData
+  reactflow__edge-input_cdgkgmc5oq--image--ImageData-caiman_mc_p4f6nsi9bhcaiman_mc_p4f6nsi9bh--image--ImageData:
+    id: reactflow__edge-input_cdgkgmc5oqinput_cdgkgmc5oq--image--ImageData-caiman_mc_p4f6nsi9bhcaiman_mc_p4f6nsi9bh--image--ImageData
     type: buttonedge
     animated: false
-    source: input_0
-    sourceHandle: input_0--image--ImageData
+    source: input_cdgkgmc5oq
+    sourceHandle: input_cdgkgmc5oq--image--ImageData
     target: caiman_mc_p4f6nsi9bh
     targetHandle: caiman_mc_p4f6nsi9bh--image--ImageData
     style:

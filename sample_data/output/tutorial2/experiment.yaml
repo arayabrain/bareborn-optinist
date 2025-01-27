@@ -27,8 +27,8 @@ function:
         max_index: null
     started_at: '2024-04-11 16:47:49'
     finished_at: '2024-04-11 16:48:34'
-  input_0:
-    unique_id: input_0
+  input_cdgkgmc5oq:
+    unique_id: input_cdgkgmc5oq
     name: sample_mouse2p_image.tiff
     success: success
     hasNWB: false

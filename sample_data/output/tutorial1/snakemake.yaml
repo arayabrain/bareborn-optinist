@@ -23,7 +23,7 @@ rules:
       input_zdax4o54o0: behaviors_data
       iscell: iscell
     type: eta
-  input_0:
+  input_ab1mmvt2ky:
     hdf5Path: null
     input:
     - 1/sample_mouse2p_image.tiff
@@ -54,10 +54,10 @@ rules:
         emission_lambda: 500.0
         name: OpticalChannel
       session_description: optinist
-    output: 1/tutorial1/input_0/sample_mouse2p_image.pkl
+    output: 1/tutorial1/input_ab1mmvt2ky/sample_mouse2p_image.pkl
     params: {}
     path: null
-    return_arg: input_0
+    return_arg: input_ab1mmvt2ky
     type: image
   input_zdax4o54o0:
     hdf5Path: null
@@ -100,7 +100,7 @@ rules:
   suite2p_file_convert_axgpevzu10:
     hdf5Path: null
     input:
-    - 1/tutorial1/input_0/sample_mouse2p_image.pkl
+    - 1/tutorial1/input_ab1mmvt2ky/sample_mouse2p_image.pkl
     nwbfile: null
     output: 1/tutorial1/suite2p_file_convert_axgpevzu10/suite2p_file_convert.pkl
     params:
@@ -111,7 +111,7 @@ rules:
       nplanes: 1
     path: suite2p/suite2p_file_convert
     return_arg:
-      input_0: image
+      input_ab1mmvt2ky: image
     type: suite2p_file_convert
   suite2p_registration_ktrkq5sa71:
     hdf5Path: null

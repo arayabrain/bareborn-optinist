@@ -17,7 +17,7 @@ function:
     started_at: '2023-11-22 16:09:06'
     success: success
     unique_id: eta_jntqpbkvwv
-  input_0:
+  input_ab1mmvt2ky:
     finished_at: '2023-11-22 16:07:03'
     hasNWB: false
     message: null
@@ -25,7 +25,7 @@ function:
     outputPaths: null
     started_at: '2023-11-22 16:07:03'
     success: success
-    unique_id: input_0
+    unique_id: input_ab1mmvt2ky
   input_zdax4o54o0:
     finished_at: '2023-11-22 16:07:03'
     hasNWB: false

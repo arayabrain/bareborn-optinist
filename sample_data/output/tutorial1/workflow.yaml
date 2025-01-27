@@ -1,9 +1,9 @@
 edgeDict:
-  ? reactflow__edge-input_0input_0--image--ImageData-suite2p_file_convert_axgpevzu10suite2p_file_convert_axgpevzu10--image--ImageData
+  ? reactflow__edge-input_ab1mmvt2kyinput_ab1mmvt2ky--image--ImageData-suite2p_file_convert_axgpevzu10suite2p_file_convert_axgpevzu10--image--ImageData
   : animated: false
-    id: reactflow__edge-input_0input_0--image--ImageData-suite2p_file_convert_axgpevzu10suite2p_file_convert_axgpevzu10--image--ImageData
-    source: input_0
-    sourceHandle: input_0--image--ImageData
+    id: reactflow__edge-input_ab1mmvt2kyinput_ab1mmvt2ky--image--ImageData-suite2p_file_convert_axgpevzu10suite2p_file_convert_axgpevzu10--image--ImageData
+    source: input_ab1mmvt2ky
+    sourceHandle: input_ab1mmvt2ky--image--ImageData
     style:
       border: null
       borderRadius: null
@@ -131,7 +131,7 @@ nodeDict:
       padding: 0
       width: 250
     type: AlgorithmNode
-  input_0:
+  input_ab1mmvt2ky:
     data:
       fileType: image
       hdf5Path: null
@@ -140,7 +140,7 @@ nodeDict:
       path:
       - sample_mouse2p_image.tiff
       type: input
-    id: input_0
+    id: input_ab1mmvt2ky
     position:
       x: 50
       y: 150
