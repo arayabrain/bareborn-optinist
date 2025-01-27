@@ -47,7 +47,8 @@ exclude = [
 python = "^3.9"
 fastapi = "0.104.*"
 uvicorn = "0.24.*"
-numpy = { version = ">=1.23, <1.27" }
+numpy = "1.24.3"
+pandas = "1.5.3"
 aiofiles = "*"
 tqdm = "*"
 pyyaml = "*"
@@ -55,7 +56,7 @@ imageio = "*"
 tifffile = "*"
 python-multipart = "*"
 future = "*"
-pynwb = "2.2.0"
+pynwb = "2.8.3"
 psutil = "*"
 nbstripout = "*"
 snakemake = { version = ">=7.24, <7.31" }
