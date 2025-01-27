@@ -8,7 +8,7 @@ I/O:
   standard_y_std: True
 
 CCA:
-  n_components: 2
+  n_components: 1
   scale: True
   max_iter: 500
   tol: 0.000001
