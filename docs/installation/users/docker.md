@@ -28,11 +28,11 @@ docker pull oistncu/optinist
 Start docker container.
 ```bash
 docker run -it --shm-size=2G \
--v /your/saving/dir:/app/studio_data \  # Please set your saving directory
---env OPTINIST_DIR="/app/studio_data" \
---name optinist_container -d -p 8000:8000 --restart=unless-stopped \
-oistncu/optinist:latest \
-poetry run python main.py --host 0.0.0.0 --port 8000
+  -v /your/saving/dir:/app/studio_data \  # Set your saving directory to `/your/saving/dir`
+  --env OPTINIST_DIR="/app/studio_data" \
+  --name optinist_container -d -p 8000:8000 --restart=unless-stopped \
+  oistncu/optinist:latest \
+  poetry run python main.py --host 0.0.0.0 --port 8000
 ```
 
 ```{eval-rst}
@@ -44,6 +44,6 @@ poetry run python main.py --host 0.0.0.0 --port 8000
 
 ## 2. Access to Backend
 
-- Launch browser, and go to http://localhost:8000
+- Launch browser, and go to `http://localhost:8000`
 
 Done!
