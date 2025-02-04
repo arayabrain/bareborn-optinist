@@ -76,6 +76,6 @@ INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ```
 
-- Launch browser, and go to http://localhost:8000
+- Launch browser, and go to `http://localhost:8000`
 
 Done!

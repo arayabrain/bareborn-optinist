@@ -40,15 +40,13 @@ docker compose -f docker-compose.dev.yml up
 
 ## 2. Access to Backend
 
-- Launch browser, and go to http://localhost:3000
+- Launch browser, and go to `http://localhost:3000`
 - Your local code change will be applied on save.
-
-```{eval-rst}
-.. note::
-    dev container uses port 3000,
-    while production docker image uses 8000.
-```
 
 Done!
 
-If you will make PRs, please see the [](for_developers) section.
+```{eval-rst}
+.. note::
+    * dev container uses port 3000, while production docker image uses 8000.
+    * See: :ref:`_optinist_startup_options` and `docker-compose.yml`
+```

@@ -18,13 +18,13 @@ Please follow instructions below.
 
 - Unix-like platforms
   - Linux
-    - [Install Tools](linux.md#install-tools)
+    - [Install Tools](../users/linux.md#install-tools)
   - Windows WSL
-    - [Install Tools](windows.md#install-tools-1)
+    - [Install Tools](../users/windows.md#install-tools-1)
   - Mac
-    - [Install Tools](mac.md#install-tools)
+    - [Install Tools](../users/mac.md#install-tools)
 - Windows
-    - [Install Tools](windows.md#install-tools)
+    - [Install Tools](../users/windows.md#install-tools)
 
 #### Install Node.js
 
@@ -116,12 +116,12 @@ yarn install
 yarn start
 ```
 
-- Launch browser, and go to http://localhost:3000
+- Launch browser, and go to `http://localhost:3000`
+
+Done!
 
 ```{eval-rst}
 .. note::
-    frontend in development environment uses port 3000,
-    while production optinist uses 8000.
+    * frontend in development environment uses port 3000, while production optinist uses 8000.
+    * See: :ref:`_optinist_startup_options`
 ```
-
-Done!
