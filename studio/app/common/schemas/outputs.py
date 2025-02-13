@@ -24,3 +24,10 @@ class OutputData:
 class JsonTimeSeriesData(OutputData):
     xrange: list = None
     std: Dict[str, dict] = None
+
+
+@dataclass
+class PaginatedLineResult:
+    next_offset: int
+    prev_offset: int
+    data: "list[str]"
