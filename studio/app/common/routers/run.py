@@ -37,7 +37,6 @@ async def run(workspace_id: str, runItem: RunItem, background_tasks: BackgroundT
         logger.error(e, exc_info=True)
         # Pass through the specific error message for KeyErrors
         raise HTTPException(
-            # Changed to 400 since it's a client configuration issue
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(e).strip('"'),  # Remove quotes from the KeyError message
         )
