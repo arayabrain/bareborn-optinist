@@ -3,6 +3,7 @@ import {
   NodeResultPending,
   NodeResultSuccess,
   RUN_STATUS,
+  StartedPipeline,
 } from "store/slice/Pipeline/PipelineType"
 import {
   isNodeResultPending,
@@ -31,6 +32,11 @@ export const selectCurrentPipelineName = (state: RootState) => {
 
 export const selectStartedPipeline = (state: RootState) => {
   return state.pipeline.run
+}
+
+export const selectRunOutputPaths = (nodeId: string) => (state: RootState) => {
+  const run = selectStartedPipeline(state) as StartedPipeline
+  return (run.runResult[nodeId] as NodeResultSuccess)?.outputPaths
 }
 
 export const selectPipelineRunBtn = (state: RootState) => {
@@ -170,6 +176,16 @@ export const selectPipelineNodeResultOutputFilePath =
     } else {
       throw new Error(`key error. outputKey:${outputKey}`)
     }
+  }
+
+export const selectOutputFilePathCellRoi =
+  (nodeId?: string | null) => (state: RootState) => {
+    if (!nodeId) return ""
+    const outputPaths = selectPipelineNodeResultOutputPaths(nodeId)(state)
+    if (Object.keys(outputPaths).includes("cell_roi")) {
+      return outputPaths["cell_roi"].path
+    }
+    return ""
   }
 
 export const selectPipelineNodeResultOutputFileDataType =

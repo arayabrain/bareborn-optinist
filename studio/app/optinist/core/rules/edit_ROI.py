@@ -9,8 +9,21 @@ from os.path import abspath, dirname
 ROOT_DIRPATH = dirname(dirname(dirname(dirname(dirname(dirname(abspath(__file__)))))))
 sys.path.append(ROOT_DIRPATH)
 
-from studio.app.optinist.core.edit_ROI import EditROI
+from studio.app.common.core.logger import AppLogger
+
+logger = AppLogger.get_logger()
+
+
+def main():
+    try:
+        from studio.app.optinist.core.edit_ROI import EditROI
+
+        config = snakemake.config
+        EditROI(file_path=config["file_path"]).commit()
+
+    except Exception as e:
+        logger.error(AppLogger.format_exc_traceback(e))
+
 
 if __name__ == "__main__":
-    config = snakemake.config
-    EditROI(file_path=config["file_path"]).commit()
+    main()

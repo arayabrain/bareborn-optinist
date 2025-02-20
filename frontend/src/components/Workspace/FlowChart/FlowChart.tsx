@@ -5,7 +5,15 @@ import { useDispatch, useSelector } from "react-redux"
 
 import { useSnackbar, VariantType } from "notistack"
 
-import { Box, FormHelperText, Popover } from "@mui/material"
+import CachedIcon from "@mui/icons-material/Cached"
+import {
+  Box,
+  CircularProgress,
+  FormHelperText,
+  IconButton,
+  Popover,
+  Tooltip,
+} from "@mui/material"
 import { grey } from "@mui/material/colors"
 import { styled } from "@mui/material/styles"
 
@@ -20,6 +28,7 @@ import {
   FileSelectDialogValue,
   DialogContext,
   FileInputUrl,
+  RoiSelectedProvider,
 } from "components/Workspace/FlowChart/Dialog/DialogContext"
 import { FileSelectDialog } from "components/Workspace/FlowChart/Dialog/FileSelectDialog"
 import { ReactFlowComponent } from "components/Workspace/FlowChart/ReactFlowComponent"
@@ -27,6 +36,7 @@ import RightDrawer from "components/Workspace/FlowChart/RightDrawer"
 import { AlgorithmTreeView } from "components/Workspace/FlowChart/TreeView"
 import PopupInputUrl from "components/Workspace/PopupInputUrl"
 import { CONTENT_HEIGHT, DRAWER_WIDTH, RIGHT_DRAWER_WIDTH } from "const/Layout"
+import { getAlgoList } from "store/slice/AlgorithmList/AlgorithmListActions"
 import {
   getStatusLoadViaUrl,
   uploadViaUrl,
@@ -75,7 +85,21 @@ const FlowChart = memo(function FlowChart(props: UseRunPipelineReturnType) {
   })
   const [fileViaUrl, setFileViaUrl] = useState("")
   const [errorUrl, setErrorUrl] = useState("")
+  const [dialogFilterNodeId, setFilterDialogNodeId] = useState("")
+  const [nodeRefresh, setNodeRefresh] = useState(false)
 
+  const handleRefreshAlgoList = async () => {
+    setNodeRefresh(true)
+
+    try {
+      await dispatch(getAlgoList()) // Ensure it waits for the API call to finish
+    } catch (error) {
+      handleClickVariant("error", "Failed to get Algorithm List")
+    } finally {
+      handleClickVariant("success", "Algorithm List Refreshed")
+      setNodeRefresh(false)
+    }
+  }
   const { enqueueSnackbar } = useSnackbar()
 
   const handleClickVariant = (variant: VariantType, mess: string) => {
@@ -141,6 +165,9 @@ const FlowChart = memo(function FlowChart(props: UseRunPipelineReturnType) {
           onOpenClearWorkflowIdDialog: setDialogClearWorkflowId,
           onOpenInputUrlDialog: setDialogViaUrl,
           onMessageError: setMessageError,
+          onOpenFilterDialog: setFilterDialogNodeId,
+          dialogFilterNodeId,
+          isOutput: true,
         }}
       >
         <DndProvider backend={HTML5Backend}>
@@ -154,7 +181,26 @@ const FlowChart = memo(function FlowChart(props: UseRunPipelineReturnType) {
               </Box>
             )}
             <Box overflow="auto">
-              <SectionTitle>Nodes</SectionTitle>
+              <SectionTitle
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                Nodes
+                <Tooltip title="Refresh Node">
+                  <span>
+                    <IconButton
+                      onClick={handleRefreshAlgoList}
+                      color="primary"
+                      disabled={nodeRefresh} // Disable while loading
+                    >
+                      {nodeRefresh ? (
+                        <CircularProgress size={24} />
+                      ) : (
+                        <CachedIcon />
+                      )}
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </SectionTitle>
               <AlgorithmTreeView />
             </Box>
           </Box>
@@ -166,6 +212,15 @@ const FlowChart = memo(function FlowChart(props: UseRunPipelineReturnType) {
                 open
                 onClose={() => setDialogNodeId("")}
               />
+            )}
+            {dialogFilterNodeId && (
+              <RoiSelectedProvider>
+                <AlgorithmOutputDialog
+                  nodeId={dialogFilterNodeId}
+                  open
+                  onClose={() => setFilterDialogNodeId("")}
+                />
+              </RoiSelectedProvider>
             )}
             {dialogFile.open && (
               <FileSelectDialog

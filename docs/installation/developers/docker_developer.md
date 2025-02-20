@@ -21,22 +21,21 @@ Please follow instructions below.
 
 ```bash
 git clone https://github.com/oist/optinist.git
-cd ./optinist
 ```
 
-- copy config files
-  ```bash
-  cp studio/config/.env.example studio/config/.env
-  cp frontend/.env.example frontend/.env
-  ```
+#### setup application config files
+
+```bash
+cd ./optinist
+cp studio/config/.env.example studio/config/.env
+cp frontend/.env.example frontend/.env
+```
 
 ### Start Docker Container
 
 ```bash
-docker compose -f docker-compose.dev.yml up
+docker compose -f docker-compose.dev.yml up -d
 ```
-
-- add `-d` option to make container run in background
 
 ## 2. Access to Backend
 
@@ -47,6 +46,7 @@ Done!
 
 ```{eval-rst}
 .. note::
-    * dev container uses port 3000, while production docker image uses 8000.
-    * See: :ref:`_optinist_startup_options` and `docker-compose.yml`
+    * By default, dev container uses port ``3000``, while production docker image uses ``8000``.
+    * See: :ref:`_optinist_startup_options` and ``docker-compose.yml``
+    * If you will make PRs, please see the :ref:`for_developers` section.
 ```

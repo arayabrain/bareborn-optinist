@@ -1,4 +1,4 @@
-import { Dispatch, FC, SetStateAction, JSX } from "react"
+import { Dispatch, FC, SetStateAction, JSX, SyntheticEvent } from "react"
 
 import { HelpOutline } from "@mui/icons-material"
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded"
@@ -14,9 +14,13 @@ import {
 export interface ConfirmDialogProps {
   open: boolean
   setOpen?: Dispatch<SetStateAction<boolean>>
-  onCancel?: () => void
+  onCancel?: (
+    event: SyntheticEvent | Event,
+    reason?: "backdropClick" | "escapeKeyDown",
+  ) => void
   onConfirm?: () => void
   title?: string
+  cancelTitle?: string
   content: string | JSX.Element
   confirmLabel?: string
   iconType?: "warning" | "info"
@@ -28,6 +32,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
   onCancel,
   onConfirm,
   title,
+  cancelTitle,
   content,
   confirmLabel,
   iconType,
@@ -36,8 +41,11 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
     ? `${confirmLabel}-confirm-button`
     : "ok-button"
 
-  const handleClose = () => {
-    onCancel && onCancel()
+  const handleClose = (
+    event: SyntheticEvent | Event,
+    reason?: "backdropClick" | "escapeKeyDown",
+  ) => {
+    onCancel && onCancel(event, reason)
     setOpen && setOpen(false)
   }
 
@@ -69,7 +77,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" onClick={handleClose}>
-          cancel
+          {cancelTitle ?? "cancel"}
         </Button>
         <Button
           variant="contained"

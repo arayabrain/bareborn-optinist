@@ -24,6 +24,12 @@ Following is the summary of directory structure.
           - SomeUtils.ts: define utility functions if needed.
     - style: extra css files.
     - utils: common utility functions.
+  - `.env`: Application environment variable definition file
+    - Depending on usage, the following .env files are available
+      - `.env`: Loads for all environments
+      - `.env.development`: Used during development (yarn start) 
+      - `.env.production`: Used during production builds (yarn build)
+    - [Learn more](https://create-react-app.dev/docs/adding-custom-environment-variables/#what-other-env-files-can-be-used)
 
 - api, components, store/slice directories are separated by its domain.
 
@@ -48,8 +54,10 @@ Following is the summary of directory structure.
       - wrappers: functions for algorithm nodes.
     - optinist: modules specific to calcium imaging data processing domain. It has same structure as common.
   - config: configuration files.
-    - `standalone-logging.yaml`: logging config for standalone mode. In standalone mode, logs are sent to streams.
-    - `logging.yaml`: logging config for multi-user mode. In multi-user mode, logs are sent to file (in `logs` dir). log file rotation settings are included.
+    - `.env`: Application environment variable definition file
+    - logging:
+      - `logging.yaml`: logging config for standalone mode. In standalone mode, logs are sent to streams.
+      - `logging.multiuser.yaml`: logging config for multi-user mode. In multi-user mode, logs are sent to file (in `logs` dir). log file rotation settings are included.
       - you can manage log configurations by editing these files.
     - auth: put Firebase authentication secret files.
     - docker: backend Dockerfiles for each environment.

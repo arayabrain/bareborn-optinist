@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import os
+import traceback
 
 import yaml
 
@@ -54,7 +55,7 @@ class AppLogger:
             logging.config.dictConfig(log_config)
 
     @staticmethod
-    def get_logger():
+    def get_logger() -> logging.Logger:
         logger = logging.getLogger(__class__.LOGGER_NAME)
 
         # If before initialization, call init
@@ -62,3 +63,7 @@ class AppLogger:
             __class__.init_logger()
 
         return logger
+
+    @staticmethod
+    def format_exc_traceback(e: Exception):
+        return "{}: {}\n{}".format(type(e), e, traceback.format_exc())

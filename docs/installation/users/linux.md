@@ -1,5 +1,4 @@
-Linux
-=================
+# Linux
 
 ```{contents}
 :depth: 4
@@ -8,12 +7,11 @@ Linux
 ## Installation
 
 We introduce how to install optinist.
-We have developed optinist python(backend) and typescript(frontend), so you need to make both environment.
 Please follow instructions below.
 
 ```{eval-rst}
-.. caution::
-    We confirmed them on Ubuntu 18.04/20.04/22.04.
+.. note::
+    We have tested OptiNiSt on Ubuntu 20.04/22.04.
 ```
 
 ## 1. Make Backend Environment
@@ -22,19 +20,27 @@ Please follow instructions below.
 
 #### Install gcc, g++
 
-- For install CaImAn, you need to install gcc and g++.
+- For installing CaImAn, you need to install gcc and g++.
 
 ```bash
 sudo apt install gcc g++
 ```
 
-#### Install Anaconda
+#### Install Conda Tool
+
+- Install [Miniforge](https://github.com/conda-forge/miniforge)
 
 ```bash
-# *The latest version of the module is ok.
-ANACONDA_VERSION=2022.10
-wget https://repo.anaconda.com/archive/Anaconda3-${ANACONDA_VERSION}-Linux-x86_64.sh
-bash Anaconda3-${ANACONDA_VERSION}-Linux-x86_64.sh
+# install (*latest version is fine)
+curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3-$(uname)-$(uname -m).sh
+
+# initial setting (re-login required)
+$HOME/miniforge3/bin/conda init
+logout
+
+# setting configs
+conda config --set channel_priority flexible
 ```
 
 ### Create Conda Environment
@@ -52,7 +58,7 @@ pip install optinist
 
 ### Set Saving Directory
 
-Optinist default saving directory is `/tmp/studio`. If you reboot your PC, this repogitory content is deleted. And setting the saving directory in environment path.
+Optinist default saving directory is `/tmp/studio`. If you reboot your PC, this repository content is deleted. And setting the saving directory in environment path.
 
 ```bash
 export OPTINIST_DIR="your_saving_dir"
@@ -64,14 +70,14 @@ export OPTINIST_DIR="your_saving_dir"
 run_optinist
 ```
 
-- `run_optinist` log is as blow:
+- `run_optinist` log is as below:
 
 ```bash
 $ run_optinist
-INFO:     Will watch for changes in these directories: ['/home/oist/optinist/backend']
+INFO:     Will watch for changes in these directories: ['/home/oist/optinist']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [6520] using statreload
-INFO:     Started server process [6557]
+INFO:     Started reloader process [xxxx] using statreload
+INFO:     Started server process [xxxx]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 ```
